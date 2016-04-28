@@ -2,12 +2,15 @@ import os, yaml
 from classes import Batsman, Bowler, Team
 from os import listdir
 from os.path import isfile, join
+import sys
 
 batsmen = {}
 bowlers = {}
 teams = {}
 
 def process_deliveries(deliveries, batting_team, bowling_team):
+    batsmen_set = set([])
+    bowlers_set = set([])
     for delivery in deliveries:
         for key, value in delivery.items():
             batsman = value["batsman"]
@@ -26,6 +29,12 @@ def process_deliveries(deliveries, batting_team, bowling_team):
                 bowlers[bowler] = Bowler(bowler, 0, 0, 0, 0, 0, 0, 0)
             bowlers[bowler].balls += 1
             bowlers[bowler].runs += total_runs
+            if batsman not in batsmen_set :
+                batsmen_set.add(batsman)
+                batsmen[batsman].matches += 1
+            if bowler not in bowlers_set :
+                bowlers_set.add(bowler)
+                bowlers[bowler].matches += 1
 
 
 def parse_file(file_name):
@@ -68,21 +77,23 @@ def parse_file(file_name):
 
 match_files = [f for f in listdir('data/odis/') if isfile(join('data/odis/', f)) and f[-5:] == '.yaml']
 
+DATA_PATH = '../data/odis/'
+
 def main():
     ind = 0
     for filename in match_files:
         print filename, ind
-        parse_file("data/odis/"+filename)
+        parse_file(DATA_PATH+filename)
         ind += 1
         if ind % 10 == 0:
             print ind
-    batsmen_file = open("batsmen", "w+")
+    batsmen_file = open("../data/batsmen.dat", "w+")
     for batsman in batsmen:
         print >>batsmen_file, batsmen[batsman].export()
-    bowler_file = open("bowlers", "w+")
+    bowler_file = open("../data/bowlers.dat", "w+")
     for bowler in bowlers:
         print >>bowler_file, bowlers[bowler].export()
-    teams_file = open("teams", "w+")
+    teams_file = open("../data/teams.dat", "w+")
     for team in teams:
         print >>teams_file, teams[team].export()
 
