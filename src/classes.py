@@ -71,3 +71,15 @@ class Team:
     def export(self) :
         return " ".join([str(x) for x in ["_".join(self.name.split()), self.matches, self.wins, self.runs_scored, self.runs_conceded, self.balls_faced, self.balls_bowled]])
 
+class Match :
+    def __init__(self, team_1, team_2):
+        self.team_1 = team_1
+        self.team_2 = team_2
+        self.batting_order_1 = []
+        self.bowlers_1 = []
+        self.batting_order_2 = []
+        self.bowlers_2 = []
+        self.outcome = 0
+
+    def export(self) :
+        return " ".join([self.team_1, self.team_2] + self.batting_order_1 + self.bowlers_1 + self.batting_order_2 + self.bowlers_2 + str(self.outcome))
