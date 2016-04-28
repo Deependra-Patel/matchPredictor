@@ -71,6 +71,10 @@ class Team:
     def export(self) :
         return " ".join([str(x) for x in ["_".join(self.name.split()), self.matches, self.wins, self.runs_scored, self.runs_conceded, self.balls_faced, self.balls_bowled]])
 
+def replace_space_all(lst):
+    return ["_".join(x.split()) for x in lst]
+
+
 class Match :
     def __init__(self, team_1, team_2):
         self.team_1 = team_1
@@ -82,4 +86,10 @@ class Match :
         self.outcome = 0
 
     def export(self) :
-        return " ".join([self.team_1, self.team_2] + self.batting_order_1 + self.bowlers_1 + self.batting_order_2 + self.bowlers_2 + str(self.outcome))
+        return " ".join(["_".join(self.team_1.split()), "_".join(self.team_2.split())] + replace_space_all(self.batting_order_1) + replace_space_all(self.bowlers_1) + replace_space_all(self.batting_order_2) + replace_space_all(self.bowlers_2) + [str(self.outcome)])
+
+    def normalize(self) :
+        self.batting_order_1 += [self.team_1 + " avg"] * (11 - len(self.batting_order_1))
+        self.batting_order_2 += [self.team_2 + " avg"] * (11 - len(self.batting_order_2))
+        self.bowlers_1 += [self.bowlers_1[0]] * (5 - len(self.bowlers_1))
+        self.bowlers_2 += [self.bowlers_2[0]] * (5 - len(self.bowlers_2))

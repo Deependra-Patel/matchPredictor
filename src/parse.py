@@ -3,29 +3,51 @@ from classes import Batsman, Bowler, Team, Match
 from os import listdir
 from os.path import isfile, join
 import sys
+import operator
 
 batsmen = {}
 bowlers = {}
 teams = {}
 matches = []
+batting_avg = {}
+
+batsmen_by_teams = {}
+
+def get_avg_batsman(team_batsmen, team) :
+    batsman = Batsman(team + " avg", 0, 0, 0, 0, 0)
+    for btmn in team_batsmen :
+        batsman.matches += batsmen[btmn].matches
+        batsman.runs += batsmen[btmn].runs
+        batsman.balls += batsmen[btmn].balls
+    return batsman
+
+def prepare_averages() :
+    for team in batsmen_by_teams :
+        batting_avg[team] = get_avg_batsman(batsmen_by_teams[team], team)
+        batsmen[team + " avg"] = batting_avg[team]
+
 
 def process_deliveries(deliveries, batting_team, bowling_team, innings, match):
+    if batting_team not in batsmen_by_teams :
+        batsmen_by_teams[batting_team] = set([])
     batsmen_set = set([])
     bowlers_set = set([])
+    bowlers_count = {}
     for delivery in deliveries:
         for key, value in delivery.items():
             batsman = value["batsman"]
             bowler = value["bowler"]
+            if batsman not in batsmen_by_teams[batting_team] :
+                batsmen_by_teams[batting_team].add(batsman)
+            if bowler not in bowlers_count:
+                bowlers_count[bowler] = 0
+            bowlers_count[bowler] += 1
             if innings == 1 :
                 if batsman not in match.batting_order_1 :
                     match.batting_order_1.append(batsman)
-                if bowler not in match.bowlers_1 :
-                    match.bowlers_1.append(bowler)
             elif innings == 2 :
                 if batsman not in match.batting_order_2 :
                     match.batting_order_2.append(batsman)
-                if bowler not in match.bowlers_2 :
-                    match.bowlers_2.append(bowler)
             batsman_runs = value["runs"]["batsman"]
             total_runs = value["runs"]["total"]
             teams[batting_team].runs_scored += total_runs
@@ -40,12 +62,19 @@ def process_deliveries(deliveries, batting_team, bowling_team, innings, match):
                 bowlers[bowler] = Bowler(bowler, 0, 0, 0, 0, 0, 0, 0)
             bowlers[bowler].balls += 1
             bowlers[bowler].runs += total_runs
+            if "wicket" in value:
+                bowlers[bowler].wickets += 1
             if batsman not in batsmen_set :
                 batsmen_set.add(batsman)
                 batsmen[batsman].matches += 1
             if bowler not in bowlers_set :
                 bowlers_set.add(bowler)
                 bowlers[bowler].matches += 1
+    sorted_bowlers_count = sorted(bowlers_count.items(), key=operator.itemgetter(1))
+    if innings == 1 :
+        match.bowlers_2 = [x[0] for x in sorted_bowlers_count[:5]]
+    else :
+        match.bowlers_1 = [x[0] for x in sorted_bowlers_count[:5]]
     return match
 
 def parse_file(file_name):
@@ -95,6 +124,7 @@ def parse_file(file_name):
             match.outcome = 1
         else :
             match.outcome = 0
+        match.normalize()
         matches.append(match)
     except Exception as e:
         print("Error: ", e)
@@ -113,6 +143,7 @@ def main():
         ind += 1
         if ind % 10 == 0:
             print ind
+    prepare_averages()
     batsmen_file = open("../data/batsmen.dat", "w+")
     for batsman in batsmen:
         print >>batsmen_file, batsmen[batsman].export()
