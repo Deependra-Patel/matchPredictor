@@ -1,3 +1,4 @@
+#class for storing batsman stats
 class Batsman:
     def __init__(self, name, matches, runs, balls, runs_recent, balls_recent):
         self.name = name
@@ -8,16 +9,16 @@ class Batsman:
         self.balls_recent = balls_recent
 
     def avg(self):
-        return self.runs / self.matches
+        return self.runs * 1.0 / self.matches
 
     def avg_recent(self):
-        return self.runs_recent / self.matches
+        return self.runs_recent * 1.0 / self.matches
 
     def strike_rate(self):
-        return self.runs / self.balls
+        return self.runs * 1.0 / self.balls
 
     def strike_rate_recent(self):
-        return self.runs_recent / self.balls_recent
+        return self.runs_recent * 1.0 / self.balls_recent
 
     def features(self):
         return [self.avg(), self.strike_rate(), self.matches]
@@ -25,7 +26,7 @@ class Batsman:
     def export(self) :
         return " ".join([str(x) for x in ["_".join(self.name.split()), self.matches, self.runs, self.balls]])
 
-
+#class for storing bowler stats
 class Bowler:
     def __init__(self, name, matches, runs, wickets, balls, runs_recent, wickets_recent, balls_recent):
         self.name = name
@@ -38,22 +39,22 @@ class Bowler:
         self.balls_recent = balls_recent
 
     def avg(self):
-        return self.runs / self.wickets
+        return self.runs * 1.0 / self.wickets
 
     def avg_recent(self):
-        return self.runs_recent / self.wickets_recent
+        return self.runs_recent * 1.0 / self.wickets_recent
 
     def economy(self):
-        return self.runs / self.balls
+        return self.runs * 1.0 / self.balls
 
     def economy_recent(self):
-        return self.runs_recent / self.wickets_recent
+        return self.runs_recent * 1.0 / self.wickets_recent
 
     def strike_rate(self):
-        return self.balls / self.wickets
+        return self.balls * 1.0 / self.wickets
 
     def strike_rate_recent(self):
-        return self.balls_recent / self.wickets_recent
+        return self.balls_recent * 1.0 / self.wickets_recent
 
     def features(self):
         return [self.avg(), self.economy(), self.strike_rate(), self.matches]
@@ -61,7 +62,7 @@ class Bowler:
     def export(self) :
         return " ".join([str(x) for x in ["_".join(self.name.split()), self.matches, self.runs, self.wickets, self.balls]])
 
-
+#class for storing team stats
 class Team:
     def __init__(self, name, matches, wins, runs_scored, runs_conceded, balls_faced, balls_bowled):
         self.name = name
@@ -73,8 +74,8 @@ class Team:
         self.balls_bowled = balls_bowled
 
     def features(self):
-        return [self.wins / self.matches, self.runs_scored / self.balls_faced,
-                self.runs_conceded / self.balls_bowled]
+        return [self.wins* 1.0 / self.matches, self.runs_scored* 1.0 / self.balls_faced,
+                self.runs_conceded* 1.0 / self.balls_bowled]
 
     def export(self) :
         return " ".join([str(x) for x in ["_".join(self.name.split()), self.matches, self.wins, self.runs_scored, self.runs_conceded, self.balls_faced, self.balls_bowled]])
@@ -82,7 +83,7 @@ class Team:
 def replace_space_all(lst):
     return ["_".join(x.split()) for x in lst]
 
-
+#class for storing match stats
 class Match :
     def __init__(self, team_1, team_2):
         self.team_1 = team_1

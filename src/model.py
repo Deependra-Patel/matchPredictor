@@ -1,20 +1,22 @@
 #!/usr/bin/python
 import math
+import random
 import numpy as np
-from sklearn import linear_model
+from sklearn import linear_model, svm
 from sklearn.svm import SVR
 from sets import Set
 from sklearn.ensemble import GradientBoostingRegressor
 from classes import *
+import warnings
+warnings.filterwarnings("ignore")
 
-casualIndex = 34
-registeredIndex = casualIndex + 1
-totalIndex = casualIndex + 2
 
+#map for storing stats
 batsmen = {}
 bowlers = {}
 teams = {}
 
+#Populate the team, batsman and bowler statistics from reading corresponding .dat files
 def init():
     team_file = open("../data/teams.dat", 'r')
     lines = team_file.readlines()
@@ -41,6 +43,7 @@ def init():
             bowlers[info[0]] = Bowler(info[0], int(info[1]), int(info[2]), int(info[3]), int(info[4]), 0, 0, 0)
 
 
+#generating feature vector from team configurations
 def transformData(rawData):
     data = []
     outcome = []
@@ -65,34 +68,49 @@ def transformData(rawData):
         data.append(new_row)
     return data, outcome
 
+#calculating probability of winning 
+def prob(val):
+    e = 2.71828
+    return 1/(1+e**(-val+0.5))
 
-
-def train():
+#first trains the model and then tests. 80:20 partition is done
+def train_and_test():
     raw_data = open("../data/matches.dat", 'r').readlines()
-    data, Output = transformData(raw_data)
-    trainData = np.array(data[:])
+    random.shuffle(raw_data)
+    x = int(0.8*len(raw_data))
+    data, Output = transformData(raw_data[:x])
+    test_data, expected_output = transformData(raw_data[x:])
+
+    trainData = np.array(data)
+    testData = np.array(test_data)
     X = trainData[:, :]
+    # regr = svm.LinearSVC()
     regr = linear_model.LinearRegression()
     # regrCasual = linear_model.Ridge(alpha = 0.2)
     # regrCasual = SVR(C=1.0, epsilon=200)
-    #regr = GradientBoostingRegressor(n_estimators=90).fit(X, Output)
-    # regrRegistered = GradientBoostingRegressor(n_estimators=90).fit(X, Registered)
+    # regr = GradientBoostingRegressor(n_estimators=90).fit(X, Output)
 
     regr.fit(X, Output)
 
     error = 0
     correct = 0
-    for i in range(len(trainData)):
-        if (regr.predict(X[i])<0.5 and Output[i]==0) or (regr.predict(X[i])>=0.5 and Output[i]==1):
+
+    #testing the model
+    for i in range(len(test_data)):
+        if (regr.predict(testData[i]) <= 0.5 and expected_output[i]==0) or (regr.predict(testData[i])>=0.5 and expected_output[i]==1):
             correct += 1
         else :
             error += 1
-    print "Succes rate of model on train data", float(correct)/float(correct + error)
+    print "Succes rate of model on train data", 100*float(correct)/float(correct + error), "%"
 
+    #special test case
+    test_data_special = "Australia India ML_Hayden SM_Katich RT_Ponting DR_Martyn A_Symonds BJ_Haddin MEK_Hussey GB_Hogg B_Lee SR_Clark GD_McGrath SR_Clark GD_McGrath B_Lee A_Symonds GB_Hogg V_Sehwag SR_Tendulkar M_Kaif R_Dravid D_Mongia SK_Raina MS_Dhoni AB_Agarkar Harbhajan_Singh RP_Singh MM_Patel V_Sehwag AB_Agarkar D_Mongia MM_Patel RP_Singh 1\n"
+    x_special, expected = transformData([test_data_special])
+    print "Probability of winning of Australia over India for match:\n ", test_data_special, prob(regr.predict(x_special))
     return regr
 
 def main():
     init()
-    regr = train()
+    regr = train_and_test()
 
 main()
